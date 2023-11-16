@@ -2,31 +2,36 @@ import numpy as np
 import pandas as pd
 
 def SimplificarProdutos(A, p):
-    # Encontrar os vértices que têm um caminho até algum material em p
-    vertices_conectados = set()
-
-    # Adicionar os materiais em p
-    vertices_conectados.update(p)
+    # Criar conjuntos para materiais e receitas
+    materiais = set(p)
+    receitas = set(range(A.shape[0]))
 
     # Iterar até não haver mais adições aos vértices conectados
     while True:
-        num_vertices_anterior = len(vertices_conectados)
+        num_materiais_anterior = len(materiais)
+        num_receitas_anterior = len(receitas)
 
-        # Iterar sobre todas as linhas da matriz A
+        # Iterar sobre todas as linhas (receitas) da matriz A
         for i in range(A.shape[0]):
-            # Se a linha i tem um caminho para um vértice conectado, adicionar i aos vértices conectados
-            if i not in vertices_conectados and any(A[i, j] != 0 for j in vertices_conectados):
-                vertices_conectados.add(i)
+            # Se a receita i tem um caminho para um material conectado, adicionar i às receitas conectadas
+            if i not in receitas and any(A[i, j] < 0 for j in materiais):
+                receitas.add(i)
+
+        # Iterar sobre todas as colunas (materiais) da matriz A
+        for j in range(A.shape[1]):
+            # Se o material j tem um caminho para uma receita conectada, adicionar j aos materiais conectados
+            if j not in materiais and any(A[i, j] > 0 for i in receitas):
+                materiais.add(j)
 
         # Se não houver adições, sair do loop
-        if len(vertices_conectados) == num_vertices_anterior:
+        if len(materiais) == num_materiais_anterior and len(receitas) == num_receitas_anterior:
             break
 
-    # Filtrar as linhas da matriz original com base nos vértices conectados
-    linhas_conectadas = list(vertices_conectados)
+    # Filtrar as linhas e colunas da matriz original com base nos vértices conectados
+    linhas_conectadas = list(receitas)
+    colunas_conectadas = list(materiais)
 
-    # Criar a matriz simplificada
-    A_simplificado = A[linhas_conectadas, :]
+    A_simplificado = A[linhas_conectadas, :][:, colunas_conectadas]
 
     return A_simplificado
 
